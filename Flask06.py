@@ -2,7 +2,6 @@
 
 # imports
 import os                 # os is used to get environment variables IP & PORT
-
 from flask import Flask   # Flask is the web app that we will customize
 from flask import render_template
 from flask import request
@@ -11,10 +10,7 @@ from DATABASE import db
 from MODELS import Note as Note
 from MODELS import User as User
 
-
-
 app = Flask(__name__)     # create an app
-
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///flask_note_appp.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']= False
 
@@ -25,40 +21,37 @@ db.init_app(app)
 with app.app_context():
     db.create_all()   # run under the app context
 
-
-
-
 # @app.route is a decorator. It gives the function "index" special powers.
 # In this case it makes it so anyone going to "your-url/" makes this function
 # get called. What it returns is what is shown as the web page
 @app.route('/')
 @app.route('/index')
 def index():
-    # retrieve user from database
-    a_user = db.session.query(User).filter_by(email='gcloud@uncc.edu').one()
+    a_user =  db.session.query(User).filter_by(email='gcloud@uncc.edu').one()
 
     return render_template("index.html", user = a_user)
 
 @app.route('/notes')
 def get_notes():
-    # retrieve user from database
+    # retrive user from data base
     a_user = db.session.query(User).filter_by(email='gcloud@uncc.edu').one()
-    # retrieve notes from database
+    #retrieve notes from database
     my_notes = db.session.query(Note).all()
-
     return render_template('notes.html', notes = my_notes, user = a_user)
 
 @app.route('/notes/<note_id>')
 def get_note(note_id):
+    # retrive user from data base
     a_user = db.session.query(User).filter_by(email='gcloud@uncc.edu').one()
-    my_note = db.session.query(Note).filter_by(id=note_id)
+    # retrieve note from database
+    my_note = db.session.query(Note).filter_by(id=note_id).one()
 
     
-    return render_template('note.html', note = my_note[int(note_id)], user = a_user)
+    return render_template('note.html', note = my_note, user = a_user)
 
 @app.route('/notes/new', methods = ['GET', 'POST'])
 def new_note():
-
+  
     #check if method is used for request
     if (request.method == 'POST'):
         #get title
@@ -74,24 +67,48 @@ def new_note():
         db.session.add(new_record)
         db.session.commit()
 
-        #ready to render response - redirect to notes listing
         return redirect(url_for('get_notes'))
     else:
         # GET request - show new note form
         # retrieve user from database
-        a_user = db.session.query(User).filter_by(email='gcloud@uncc.edu').one()
-        return render_template('new.html', user = a_user)
+        a_user =  db.session.query(User).filter_by(email='gcloud@uncc.edu').one()
 
-@app.route('/notes/edit/<note_id>')
+        return render_template("new.html", user = a_user)
+
+@app.route('/notes/edit/<note_id>', methods=['GET', 'POST'])
 def update_note(note_id):
-    # GET request - show new note form to edit note
-    # retrieve user from database
-    a_user = db.session.query(User).filter_by(email='gcloud@uncc.edu').one()
+    # check method used for request
+    if request.method == 'POST':
+        # get title data
+        title = request.form['title']
+        # get note data
+        text = request.form['noteText']
+        note = db.session.query(Note).filter_by(id=note_id).one()
+        # update note data
+        note.title = title
+        note.text = text
+        # update note in DB
+        db.session.add(note)
+        db.session.commit()
 
-    #retrieve note form database
+        return redirect(url_for('get_notes'))
+    
+    else:
+        # GET request - show new note form to edit note
+        # retrieve user from database
+        a_user = db.session.query(User).filter_by(email='gcloud@uncc.edu').one()
+        #retrieve note from database
+        my_note = db.session.query(Note).filter_by(id=note_id).one()
+
+        return render_template('new.html', note=my_note, user=a_user)
+
+@app.route('/notes/delete/<note_id>', methods=['POST'])
+def delete_note(note_id):
+    # retrieve note from database
     my_note = db.session.query(Note).filter_by(id=note_id).one()
-
-    return render_template('new.html', note=my_note, user=a_user)
+    db.session.delete(my_note)
+    db.session.commit()
+    return redirect(url_for('get_notes'))
 
 app.run(host=os.getenv('IP', '127.0.0.1'),port=int(os.getenv('PORT', 5000)),debug=True)
 
