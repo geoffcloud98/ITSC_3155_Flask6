@@ -2,8 +2,7 @@
 
 # imports
 import os                 # os is used to get environment variables IP & PORT
-import os.path
-import sqlite3
+
 from flask import Flask   # Flask is the web app that we will customize
 from flask import render_template
 from flask import request
@@ -82,6 +81,17 @@ def new_note():
         # retrieve user from database
         a_user = db.session.query(User).filter_by(email='gcloud@uncc.edu').one()
         return render_template('new.html', user = a_user)
+
+@app.route('/notes/edit/<note_id>')
+def update_note(note_id):
+    # GET request - show new note form to edit note
+    # retrieve user from database
+    a_user = db.session.query(User).filter_by(email='gcloud@uncc.edu').one()
+
+    #retrieve note form database
+    my_note = db.session.query(Note).filter_by(id=note_id).one()
+
+    return render_template('new.html', note=my_note, user=a_user)
 
 app.run(host=os.getenv('IP', '127.0.0.1'),port=int(os.getenv('PORT', 5000)),debug=True)
 
