@@ -11,10 +11,19 @@
     <body>
 
         <h1>Welcome {{user}} to the 49er Notes App!</h1>
+        {% if user %}
+            <nav>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </nav>
+            <nav>
+                <a href="{{ url_for('get_notes') }}">My Notes</a>
+            </nav>
+        {% else %}
         <nav> 
-            <a href={{ url_for('get_notes') }}> My notes </a> ||
-            <a href={{ url_for('new_note') }}> Add Note </a>
+            <a href={{ url_for('login') }}>Sign in</a> ||
+            <a href={{ url_for('register') }}>Register</a>
         </nav>
+        {% endif %}
 
         <h2>Use this site to maintain and organize your notes.</h2>
 
