@@ -1,0 +1,1 @@
+The 49er Notes app is a web-based application designed to help students take quick, efficient notes during study sessions. Developed using Flask, the app incorporates SQLAlchemy for securely storing user information and managing data.
